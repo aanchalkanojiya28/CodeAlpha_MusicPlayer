@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Music Player</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #17132f, #593b79);
+            padding: 20px;
+            color: white;
+        }
+
+        .player {
+            width: 100%;
+            max-width: 350px;
+            background: #241d3b;
+            padding: 25px;
+            border-radius: 22px;
+            text-align: center;
+            box-shadow: 0 10px 30px #00000055;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 27px;
+        }
+
+        .cover {
+            width: 190px;
+            height: 190px;
+            margin: 20px auto;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #f9a8d4, #a78bfa);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 75px;
+        }
+
+        h2 {
+            font-size: 21px;
+            margin-bottom: 5px;
+        }
+
+        #artist {
+            color: #c4b5fd;
+            margin-top: 0;
+        }
+
+        .song-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .song {
+            background: #352b50;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 9px;
+            cursor: pointer;
+        }
+
+        .song:hover,
+        .song.active {
+            background: #6650a4;
+        }
+
+        .progress {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #c4b5fd;
+        }
+
+        .time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #d1c9e7;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            margin: 18px 0;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+        }
+
+        .control {
+            background: transparent;
+            color: white;
+            font-size: 25px;
+        }
+
+        .play {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: #c4b5fd;
+            color: #241d3b;
+            font-size: 23px;
+        }
+
+        .volume {
+            margin-top: 15px;
+        }
+
+        .volume input {
+            accent-color: #c4b5fd;
+            width: 100%;
+        }
+
+        #message {
+            font-size: 12px;
+            color: #fda4af;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="player">
+
+    <h1>♫ My Music Player</h1>
+
+    <div class="cover">🎵</div>
+
+    <h2 id="title">Dream Melody</h2>
+    <p id="artist">Relaxing Music</p>
+
+    <audio id="audio"></audio>
+
+    <input type="range" id="progress"
+           class="progress" value="0" min="0" max="100">
+
+    <div class="time">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+    </div>
+
+    <div class="controls">
+        <button class="control" onclick="previousSong()">⏮</button>
+        <button class="play" id="playButton"
+                onclick="playPause()">▶</button>
+        <button class="control" onclick="nextSong()">⏭</button>
+    </div>
+
+    <div class="volume">
+        <label>🔊 Volume</label>
+        <input type="range" id="volume"
+               min="0" max="1" step="0.1" value="0.7">
+    </div>
+
+    <p id="message"></p>
+
+    <div class="song-list">
+        <h3>My Playlist</h3>
+
+        <div class="song active" onclick="selectSong(0)">
+            🎵 Dream Melody
+        </div>
+
+        <div class="song" onclick="selectSong(1)">
+            🎶 Peaceful Piano
+        </div>
+
+        <div class="song" onclick="selectSong(2)">
+            🎧 Summer Vibes
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var songs = [
+        {
+            title: "Dream Melody",
+            artist: "Relaxing Music",
+            file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        },
+        {
+            title: "Peaceful Piano",
+            artist: "Chill Music",
+            file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+        },
+        {
+            title: "Summer Vibes",
+            artist: "Feel Good Music",
+            file: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+        }
+    ];
+
+    var audio = document.getElementById("audio");
+    var playButton = document.getElementById("playButton");
+    var title = document.getElementById("title");
+    var artist = document.getElementById("artist");
+    var progress = document.getElementById("progress");
+    var currentTime = document.getElementById("currentTime");
+    var duration = document.getElementById("duration");
+    var message = document.getElementById("message");
+    var songItems = document.querySelectorAll(".song");
+
+    var songIndex = 0;
+
+    audio.volume = 0.7;
+
+    function loadSong(index) {
+        songIndex = index;
+
+        title.textContent = songs[index].title;
+        artist.textContent = songs[index].artist;
+        audio.src = songs[index].file;
+
+        songItems.forEach(function(song) {
+            song.classList.remove("active");
+        });
+
+        songItems[index].classList.add("active");
+
+        progress.value = 0;
+        currentTime.textContent = "0:00";
+        duration.textContent = "0:00";
+        message.textContent = "";
+    }
+
+    function playPause() {
+        if (audio.paused) {
+            audio.play().then(function() {
+                playButton.textContent = "❚❚";
+                message.textContent = "";
+            }).catch(function() {
+                message.textContent =
+                    "Song load nahi hua. Internet connection check karo.";
+                playButton.textContent = "▶";
+            });
+        } else {
+            audio.pause();
+            playButton.textContent = "▶";
+        }
+    }
+
+    function selectSong(index) {
+        loadSong(index);
+        playPause();
+    }
+
+    function nextSong() {
+        var wasPlaying = !audio.paused;
+        loadSong((songIndex + 1) % songs.length);
+
+        if (wasPlaying) {
+            playPause();
+        }
+    }
+
+    function previousSong() {
+        var wasPlaying = !audio.paused;
+        loadSong((songIndex - 1 + songs.length) % songs.length);
+
+        if (wasPlaying) {
+            playPause();
+        }
+    }
+
+    function formatTime(seconds) {
+        var minutes = Math.floor(seconds / 60);
+        var remaining = Math.floor(seconds % 60);
+
+        return minutes + ":" +
+            (remaining < 10 ? "0" : "") + remaining;
+    }
+
+    audio.addEventListener("loadedmetadata", function() {
+        duration.textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener("timeupdate", function() {
+        if (audio.duration) {
+            progress.value =
+                (audio.currentTime / audio.duration) * 100;
+
+            currentTime.textContent =
+                formatTime(audio.currentTime);
+        }
+    });
+
+    progress.addEventListener("input", function() {
+        if (audio.duration) {
+            audio.currentTime =
+                (progress.value / 100) * audio.duration;
+        }
+    });
+
+    document.getElementById("volume").addEventListener(
+        "input", function() {
+            audio.volume = this.value;
+        }
+    );
+
+    audio.addEventListener("ended", nextSong);
+
+    audio.addEventListener("play", function() {
+        playButton.textContent = "❚❚";
+    });
+
+    audio.addEventListener("pause", function() {
+        playButton.textContent = "▶";
+    });
+
+    loadSong(0);
+</script>
+
+</body>
+</html>
